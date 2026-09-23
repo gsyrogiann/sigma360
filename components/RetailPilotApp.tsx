@@ -147,6 +147,7 @@ export default function RetailPilotApp() {
               onStore={openStore}
               onVisit={() => { setVisitStep(1); go("visit"); }}
               onTask={() => go("new-task")}
+              onPending={() => { setTaskFilter("Όλες"); go("tasks"); }}
             />
           )}
           {view === "store" && (
@@ -325,7 +326,7 @@ function StoresPage({
   );
 }
 
-function StorePage({ store, onBack, onVisit, onTask }: { store: StoreType; onBack: () => void; onVisit: () => void; onTask: () => void }) {
+function StorePage({ store, onBack, onVisit, onTask, onPending }: { store: StoreType; onBack: () => void; onVisit: () => void; onTask: () => void; onPending: () => void }) {
   return (
     <>
       <button className="back-link" onClick={onBack}><ArrowLeft size={17} /> Καταστήματα</button>
@@ -339,7 +340,7 @@ function StorePage({ store, onBack, onVisit, onTask }: { store: StoreType; onBac
         <div className="hero-store-kpis">
           <Kpi value={`${store.score}%`} label="Store Score" delta={`${store.delta > 0 ? "+" : ""}${store.delta}%`} tone={scoreTone(store.score)} />
           <Kpi value="€28.450" label="Πωλήσεις μήνα" delta="92% στόχος" tone="good" />
-          <Kpi value={String(store.openTasks)} label="Εκκρεμότητες" delta={`${store.overdue} εκπρόθεσμες`} tone={store.overdue ? "bad" : "good"} />
+          <Kpi value={String(store.openTasks)} label="Εκκρεμότητες" delta={`${store.overdue} εκπρόθεσμες`} tone={store.overdue ? "bad" : "good"} onClick={onPending} title="Προβολή εκκρεμοτήτων" />
           <Kpi value={String(store.staff)} label="Προσωπικό" delta="σήμερα" tone="blue" />
         </div>
       </div>
@@ -612,8 +613,12 @@ function ReportsPage({ onExport }: { onExport: () => void }) {
   );
 }
 
-function Kpi({ icon, value, label, delta, tone="blue" }: { icon?: React.ReactNode; value: string; label: string; delta?: string; tone?: string }) {
-  return <div className={`kpi-card ${tone}`}>{icon && <span className="kpi-icon">{icon}</span>}<div><strong>{value}</strong><span>{label}</span>{delta && <small>{delta}</small>}</div></div>;
+function Kpi({ icon, value, label, delta, tone="blue", onClick, title }: { icon?: React.ReactNode; value: string; label: string; delta?: string; tone?: string; onClick?: () => void; title?: string }) {
+  const content = <>{icon && <span className="kpi-icon">{icon}</span>}<div><strong>{value}</strong><span>{label}</span>{delta && <small>{delta}</small>}</div></>;
+  if (onClick) {
+    return <button type="button" className={`kpi-card kpi-clickable ${tone}`} onClick={onClick} title={title} aria-label={title || label}>{content}</button>;
+  }
+  return <div className={`kpi-card ${tone}`}>{content}</div>;
 }
 
 function MiniPanel({ title, children, onClick }: { title: string; children: React.ReactNode; onClick?: () => void }) {
